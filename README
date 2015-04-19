@@ -1,0 +1,9 @@
+
+kconfig-frontends tests.
+
+1. set configuration 
+make menuconfig 
+
+2. build config.h 
+make
+
