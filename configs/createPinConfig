@@ -1,0 +1,12 @@
+#!/bin/sh
+
+for NAME in PWM LED SWITCH SWITCHS VBAT; do
+	echo $NAME
+	name=$(echo $NAME | tr 'A-Z' 'a-z')
+	(
+	for i in $(seq 0 13) $(for i in $(seq 0 13); do echo A$i; done) ; do
+		echo "config PIN_${NAME}_$i"
+		echo "\tbool $i"
+	done
+	) > $name.cfg
+done

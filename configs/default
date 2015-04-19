@@ -1,0 +1,266 @@
+
+mainmenu "Configuration"
+
+choice
+	prompt "Board type"
+        default BOARD_IS_UNO
+        help
+          Choose board type.
+
+# list generate by :
+# ard-parse-boards --boards | grep -v Tag | while read n h; do u=$(echo $n | tr 'a-z' 'A-Z'); echo config BOARD_IS_$u; echo -e "\tbool $n"; echo -e "\thelp"; echo -e "\t\t$h"; echo; done
+
+#config BOARD_IS_ATMEGA168
+#	bool atmega168
+#	help
+#		Arduino NG or older w/ ATmega168
+#
+#config BOARD_IS_ATMEGA328
+#	bool atmega328
+#	help
+#		Arduino Duemilanove w/ ATmega328
+#
+#config BOARD_IS_ATMEGA8
+#	bool atmega8
+#	help
+#		Arduino NG or older w/ ATmega8
+#
+#config BOARD_IS_BT
+#	bool bt
+#	help
+#		Arduino BT w/ ATmega168
+#
+#config BOARD_IS_BT328
+#	bool bt328
+#	help
+#		Arduino BT w/ ATmega328
+#
+#config BOARD_IS_DIECIMILA
+#	bool diecimila
+#	help
+#		Arduino Diecimila or Duemilanove w/ ATmega168
+#
+#config BOARD_IS_ETHERNET
+#	bool ethernet
+#	help
+#		Arduino Ethernet
+#
+#config BOARD_IS_FIO
+#	bool fio
+#	help
+#		Arduino Fio
+#
+#config BOARD_IS_LEONARDO
+#	bool leonardo
+#	help
+#		Arduino Leonardo
+#
+#config BOARD_IS_LILYPAD
+#	bool lilypad
+#	help
+#		LilyPad Arduino w/ ATmega168
+#
+#config BOARD_IS_LILYPAD328
+#	bool lilypad328
+#	help
+#		LilyPad Arduino w/ ATmega328
+#
+#config BOARD_IS_MEGA
+#	bool mega
+#	help
+#		Arduino Mega (ATmega1280)
+#
+#config BOARD_IS_MEGA2560
+#	bool mega2560
+#	help
+#		Arduino Mega 2560 or Mega ADK
+#
+#config BOARD_IS_MINI
+#	bool mini
+#	help
+#		Arduino Mini w/ ATmega168
+#
+#config BOARD_IS_MINI328
+#	bool mini328
+#	help
+#		Arduino Mini w/ ATmega328
+#
+#config BOARD_IS_NANO
+#	bool nano
+#	help
+#		Arduino Nano w/ ATmega168
+#
+config BOARD_IS_NANO328
+	bool nano328
+	help
+		Arduino Nano w/ ATmega328
+
+#config BOARD_IS_PRO
+#	bool pro
+#	help
+#		Arduino Pro or Pro Mini (3.3V, 8 MHz) w/ ATmega168
+#
+#config BOARD_IS_PRO328
+#	bool pro328
+#	help
+#		Arduino Pro or Pro Mini (3.3V, 8 MHz) w/ ATmega328
+#
+#config BOARD_IS_PRO5V
+#	bool pro5v
+#	help
+#		Arduino Pro or Pro Mini (5V, 16 MHz) w/ ATmega168
+#
+#config BOARD_IS_PRO5V328
+#	bool pro5v328
+#	help
+#		Arduino Pro or Pro Mini (5V, 16 MHz) w/ ATmega328
+#
+config BOARD_IS_UNO
+	bool uno
+	help
+		Arduino Uno
+
+endchoice
+
+choice 
+        prompt "Input voltage"
+        default POWER_IS_8_4_V
+        help
+          Choose input voltage type.
+
+config POWER_IS_8_4_V
+	bool "8.4 V"
+	help
+		Two batteries configured in a serie.
+
+config POWER_IS_4_2_V
+        bool "4.2 V"
+        help
+                One battery.
+
+endchoice
+
+choice 
+	prompt "Fire algorithm"
+	default FIRE_IS_RIEMANN
+	help
+		Choose FIRE algorithm.
+
+config FIRE_IS_RIEMANN
+	bool Riemann
+	help
+		PWM with Riemann sum integral (not optimized for size)
+
+config FIRE_IS_FIXED_PULSE
+	bool "Fixed pulse"
+	help
+		PWM with fixed pulse size (optimized for size)
+
+endchoice
+
+choice
+	prompt "Switch(s)"
+	default SWITCHS_IS_FIRE_UP_DOWN
+	help
+		Choose switch(s).
+
+config SWITCH_IS_FIRE
+	bool "Fire"
+	help
+		Just one switch for fire.
+
+config SWITCHS_IS_FIRE_UP_DOWN
+	bool "Fire, Up and Down"
+	help
+		3 switchs : Fire, Up et Down.
+
+endchoice
+
+choice 
+	prompt "Display"
+	default DISPLAY_IS_ONE_BASIC_LED
+	help
+		Display.
+
+config DISPLAY_IS_NONE
+        bool none
+        help
+                No display.
+
+
+config DISPLAY_IS_ONE_BASIC_LED
+	bool "led"
+	help
+		One basic led.
+endchoice
+
+choice
+	prompt "Menu type"
+	default MENU_IS_BASIC
+	help
+		Menu.
+
+config MENU_IS_NONE
+	bool none
+	help
+		No menu.
+
+config MENU_IS_BASIC
+	bool basic
+	help
+		Basic menu.
+endchoice
+
+menu "USB configuration"
+
+config USB_IS_ON
+	bool "Use USB for messages"
+	default y
+	help
+		Use USB for messages.
+
+config USB_TRACE
+	bool "Use USB for trace messages (debug)"
+	default n
+	depends on USB_IS_ON
+	help
+		Use USB for trace messages (debug).
+		
+endmenu
+
+
+menu "Pins affectaton"
+
+choice 
+	prompt "PWM (Digital)"
+	source configs/pwm.cfg
+endchoice
+
+choice
+        prompt "VBAT (Analog)"
+        source configs/vbat.cfg
+	help 
+		Battery voltage
+endchoice
+
+
+choice
+        depends on SWITCH_IS_FIRE=y
+        prompt "SWITCH (Digital)"
+        source configs/switch.cfg
+endchoice
+
+choice
+        depends on SWITCHS_IS_FIRE_UP_DOWN=y
+        prompt "SWITCHS (Analog)"
+        source configs/switchs.cfg
+endchoice
+
+choice 
+	depends on DISPLAY_IS_ONE_BASIC_LED=y
+        prompt "LED (Digigtal)"
+        source configs/led.cfg
+endchoice
+
+endmenu	
+

@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# build config.h from .config
+
+cat << EOF
+/*
+ * Automatically generated file; DO NOT EDIT.
+*/
+
+EOF
+
+cat $1 | awk '
+
+/^#/ 		{ next; }
+/^CONFIG_PIN_/ 	{
+		match($0, /^CONFIG_PIN_([^_]*)_([^=]*).*/, a) 
+		print "#define CONFIG_PIN_"a[1]" "a[2]
+		next
+		}
+/^CONFIG/	{ 
+		match($0, /^([^=]*)=(.*)/, a) 
+		if (a[2]=="y") a[2]=""
+                print "#define "a[1]" "a[2]
+		}
+'
