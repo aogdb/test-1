@@ -1,6 +1,9 @@
 
 kconfig-frontends tests.
 
+0. Depends :
+git gcc make ...
+
 1. set configuration 
 make menuconfig 
 
