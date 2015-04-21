@@ -3,6 +3,9 @@
 # build config.h from .config
 
 cat << EOF
+#ifndef CONFIG_H
+#define CONFIG_H
+
 /*
  * Automatically generated file; DO NOT EDIT.
 */
@@ -23,3 +26,5 @@ cat $1 | awk '
                 print "#define "a[1]" "a[2]
 		}
 '
+
+echo "#endif"

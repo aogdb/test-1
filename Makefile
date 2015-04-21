@@ -11,15 +11,19 @@ menuconfig : mconf
 
 mconf : kconfig
 	$(KCONFIG)/frontends/mconf/mconf configs/default
+	(cd src; make config.h)
 
 gconf : kconfig
 	$(KCONFIG)/frontends/gconf/gconf configs/default
+	(cd src; make config.h)
 
 nconf : kconfig
 	$(KCONFIG)/frontends/nconf/nconf configs/default
+	(cd src; make config.h)
 
 qconf : kconfig
 	$(KCONFIG)/frontends/qconf/qconf configs/default
+	(cd src; make config.h)
 
 kconfig : $(KCONFIG)/frontends/mconf/mconf
 
@@ -39,6 +43,8 @@ $(KCONFIG)/frontends/mconf/mconf :
 		exit 1; \
 	fi;
 
+depends :
+	(cd src && make depends)
 clean :
 	(cd src && make clean)
 

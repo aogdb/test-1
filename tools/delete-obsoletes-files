@@ -1,0 +1,116 @@
+#!/bin/sh
+
+DEBUG=1
+
+# Compilation line options
+
+CC_OPTS=$(grep ^CONFIG_BOARD ../.config)
+CC_OPTS_OLD=$(cat .ccline 2> /dev/null)
+
+if [ "$DEBUG" = 1 ]; then
+	echo "--- ccline ---"
+	echo "old=$CC_OPTS_OLD"
+	echo "new=$CC_OPTS"
+fi
+
+if [ "$CC_OPTS" != "$CC_OPTS_OLD" ]; then 
+	echo "New cc options. Purge all files."
+        rm -f *.o main 
+	echo "$CC_OPTS" > .ccline
+	exit 0
+fi
+
+# Modules to link
+
+LD_OBJS=$(cat .ldobjs)
+LD_OBJS_OLD=$(cat .ldobjs.current 2> /dev/null)
+
+if [ "$DEBUG" = 1 ]; then
+	echo --- objs ---
+	echo "old=$LD_OBJS_OLD"
+	echo "new=$LD_OBJS"
+fi
+
+if [ "$LD_OBJS" != "$LD_OBJS_OLD" ]; then \
+	echo "New objs. Purge main."
+	rm -f main
+	echo "$LD_OBJS" > .ldobjs.current
+fi
+
+
+# Clean obsolete obj
+
+[ ! -e .config.current ] && touch .config.current
+d="$(diff ../.config .config.current  | grep CONFIG_ | \
+	sed -re 's/^.*(CONFIG_[[:alnum:]_]*).*$/\1/' | sort -u)"
+
+if [ "$DEBUG" = 1 ]; then
+	echo --- diff ---
+	echo "$d"
+fi
+
+[ -z "$d" ] && exit 0
+
+# Compute dependencies
+
+awk '
+BEGINFILE {
+	if(FILENAME=="config.h")
+		nextfile
+	}
+/CONFIG_/ {
+		while (match($0, /CONFIG_[[:alnum:]_]{2,}/)) {
+        		pattern = substr($0, RSTART, RLENGTH);
+        		$0 = substr($0, RSTART + RLENGTH);
+			array[pattern]=1
+    		}
+}
+
+ENDFILE {
+	printf("%s : ", FILENAME)
+	for (x in array) {
+		printf("%s ", x);
+	}
+	printf("\n");
+	delete array
+    }
+
+' *.[ch]* > .depends
+
+if [ "$DEBUG" = 1 ]; then
+	echo "--- depends ---"
+	cat .depends
+fi
+
+# List of impacted files
+
+l=""
+for i in $d; do
+	l="$l
+$(grep $i .depends | cut -d : -f 1)"
+done
+
+l=$(echo "$l" | sort -u)
+
+if [ "$DEBUG" = 1 ]; then
+	echo "--- impacted files ---"
+	echo "$l"
+fi
+
+# Liste of impacted .o
+
+lobjs=$(echo "$l" | sed -re 's/\..*$/.o/' | sort -u)
+
+for i in $l; do
+	lobjs="$lobjs
+$(grep $i Makefile.depends | cut -d : -f 1)"
+done
+lobjs=$(echo "$lobjs" | sort -u)
+
+if [ "$DEBUG" = 1 ]; then
+	echo --- obsoletes objs ---
+	echo "$lobjs"
+fi
+
+[ -n "$lobjs" ] && rm -f $lobjs || :
+
